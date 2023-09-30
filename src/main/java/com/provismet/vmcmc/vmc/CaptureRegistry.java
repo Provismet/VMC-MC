@@ -31,7 +31,7 @@ public class CaptureRegistry {
 		});
 
         CaptureRegistry.register("relative_health", CaptureType.BLEND_SHAPE, client -> {
-            return client.player.getMaxHealth() / client.player.getHealth();
+            return client.player.getHealth() / client.player.getMaxHealth();
         });
 
         CaptureRegistry.register("hurt", CaptureType.BLEND_SHAPE, client -> {
