@@ -1,8 +1,11 @@
 package com.provismet.vmcmc.vmc;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Function;
 
+import com.illposed.osc.OSCPacket;
 import com.provismet.vmcmc.ClientVMC;
 
 import net.minecraft.client.MinecraftClient;
@@ -48,18 +51,19 @@ public class CaptureRegistry {
     }
 
     public static void iterate (MinecraftClient client) {
-        if (client.player == null && PacketSender.isValid()) return;
+        if (client.player == null || !PacketSender.isValid()) return;
+
+        List<OSCPacket> messages = new ArrayList<>(REGISTRY.size());
 
         REGISTRY.forEach((id, callbackInfo) -> {
             float output = callbackInfo.getRight().apply(client);
 
             switch (callbackInfo.getLeft()) {
                 case BLEND_SHAPE:
-                    PacketSender.sendBlendShape(id.toString(), output);
+                    messages.add(PacketSender.createBlendShape(id.toString(), output));
                     break;
             
                 case BONE:
-                    PacketSender.sendBone(id.toString(), output);
                     break;
 
                 default:
@@ -67,7 +71,8 @@ public class CaptureRegistry {
             }
         });
 
-        PacketSender.sendBlendApply();
+        messages.add(PacketSender.createBlendApply());
+        PacketSender.sendBundle(messages);
     }
 
     public enum CaptureType {
