@@ -2,8 +2,7 @@ package com.provismet.vmcmc.vmc;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.illposed.osc.OSCMessage;
@@ -15,16 +14,8 @@ public class PacketSender {
 
     public static void initPort (int port) {
         try {
-            portOut = new OSCPortOut(new InetSocketAddress(InetAddress.getLocalHost(), port));
-        }
-        catch (IOException e) {
-            ClientVMC.LOGGER.error("Failed to create port:", e);
-        }
-    }
-
-    public static void initPort () {
-        try {
-            portOut = new OSCPortOut();
+            portOut = new OSCPortOut(InetAddress.getLocalHost(), port);
+            ClientVMC.LOGGER.info("Created VMC socket at port: " + port);
         }
         catch (IOException e) {
             ClientVMC.LOGGER.error("Failed to create port:", e);
@@ -36,16 +27,14 @@ public class PacketSender {
     }
 
     public static void sendBlendShape (String name, float value) {
-        List<Object> args = new ArrayList<>(2);
-        args.add(value);
-        args.add(name);
+        List<Object> args = Arrays.asList(name, value);
         OSCMessage message = new OSCMessage("/VMC/Ext/Blend/Val", args);
 
         try {
             portOut.send(message);
         }
         catch (Exception e) {
-
+            ClientVMC.LOGGER.error("Failed to send message: ", e);
         }
     }
 
