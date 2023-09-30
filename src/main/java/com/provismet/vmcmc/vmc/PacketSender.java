@@ -78,7 +78,6 @@ public class PacketSender {
 
         try {
             portOut.send(bundle);
-            ClientVMC.LOGGER.info("Sent bundle.");
         }
         catch (Exception e) {
             ClientVMC.LOGGER.error("Failed to send OSC bundle:", e);
