@@ -20,7 +20,7 @@ public class ClientVMC implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient () {
-		PacketSender.initPort(39541);
+		PacketSender.initPort(35404);
 		CaptureRegistry.registerStandardEvents();
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
