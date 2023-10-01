@@ -16,10 +16,10 @@ import com.provismet.vmcmc.ClientVMC;
 public class PacketSender {
     private static OSCPortOut portOut;
 
-    public static void initPort (int port) {
+    public static void initPort (String host, int port) {
         try {
-            portOut = new OSCPortOut(InetAddress.getLocalHost(), port);
-            ClientVMC.LOGGER.info("Created VMC socket at port: " + port);
+            portOut = new OSCPortOut(InetAddress.getByName(host), port); // Use 127.0.0.1 and NOT InetAddress.getLocalHost(), the latter does not work.
+            ClientVMC.LOGGER.info("Created VMC socket at " + host + ":" + port);
         }
         catch (IOException e) {
             ClientVMC.LOGGER.error("Failed to create port:", e);
