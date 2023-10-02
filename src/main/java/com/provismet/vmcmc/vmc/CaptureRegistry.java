@@ -115,7 +115,7 @@ public class CaptureRegistry {
         });
 
         registerBlendShape("time_of_day", client -> {
-            float time = client.player.getWorld().getTimeOfDay();
+            float time = client.world.getTimeOfDay();
             while (time >= 24000f) {
                 time -= 24000f;
             }
@@ -123,8 +123,8 @@ public class CaptureRegistry {
         });
 
         registerBlendShape("rain_amount", client -> {
-            if (client.player.getWorld().isThundering()) return 1f;
-            else if (client.player.getWorld().isRaining()) return 0.5f;
+            if (client.world.isThundering()) return 1f;
+            else if (client.world.isRaining()) return 0.5f;
             else return 0f;
         });
 
@@ -181,7 +181,7 @@ public class CaptureRegistry {
      * @param client The Minecraft client.
      */
     public static void iterate (MinecraftClient client) {
-        if (client.player == null || !PacketSender.isValid()) return;
+        if (client.player == null || client.world == null || !PacketSender.isValid()) return;
 
         List<OSCPacket> messages = new ArrayList<>(BLEND_REGISTRY.size() + BONE_REGISTRY.size());
 
