@@ -3,10 +3,12 @@ package com.provismet.vmcmc;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.provismet.vmcmc.config.Config;
 import com.provismet.vmcmc.vmc.CaptureRegistry;
 import com.provismet.vmcmc.vmc.PacketSender;
 
@@ -20,7 +22,8 @@ public class ClientVMC implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient () {
-		PacketSender.initPort("127.0.0.1", 35404);
+		Pair<String,Integer> portInfo = Config.getPortInfo();
+		PacketSender.initPort(portInfo.getLeft(), portInfo.getRight());
 		CaptureRegistry.registerStandardEvents();
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
