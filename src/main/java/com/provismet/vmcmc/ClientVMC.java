@@ -17,7 +17,7 @@ public class ClientVMC implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
 	public static Identifier identifier (String path) {
-		return Identifier.of(MODID, path);
+		return new Identifier(MODID, path);
 	}
 
 	@Override
