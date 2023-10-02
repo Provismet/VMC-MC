@@ -8,6 +8,8 @@ import java.util.function.Function;
 import com.illposed.osc.OSCPacket;
 import com.provismet.vmcmc.ClientVMC;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.Identifier;
@@ -16,6 +18,7 @@ import net.minecraft.util.math.MathHelper;
 /**
  * A basic registry that stores the callbacks to generate BlendShapes and Bones.
  */
+@Environment(value=EnvType.CLIENT)
 public class CaptureRegistry {
     private static final HashMap<Identifier, Function<MinecraftClient, Float>> BLEND_REGISTRY = new HashMap<>();
     private static final HashMap<Identifier, Function<MinecraftClient, List<Float>>> BONE_REGISTRY = new HashMap<>();
