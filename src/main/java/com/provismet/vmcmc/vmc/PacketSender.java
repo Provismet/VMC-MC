@@ -18,6 +18,9 @@ import com.provismet.vmcmc.ClientVMC;
  * This singleton is guaranteed to exist after the vmc-mc mod has been initialised on the client.
  */
 public class PacketSender {
+    public static final String LOCALHOST = "127.0.0.1";
+    public static final int DEFAULT_PORT = 35404;
+
     private static OSCPortOut portOut;
 
     /**
