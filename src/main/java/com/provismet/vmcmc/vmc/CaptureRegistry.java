@@ -11,6 +11,7 @@ import com.provismet.vmcmc.ClientVMC;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -98,7 +99,12 @@ public class CaptureRegistry {
             double skyAngleMath = 0.5 + 2.0 * MathHelper.clamp((double)MathHelper.cos(client.world.getSkyAngle(1.0f) * ((float)Math.PI * 2)), -0.25, 0.25);
             int ambientDarkness = (int)((1.0 - rainGradient * thunderGradient * skyAngleMath) * 11.0);
 
-            float internalLight = client.world.getLightLevel(client.player.getBlockPos(), ambientDarkness);
+            // Manually calculate light this way because it accounts for mods that modify the player's block-light value.
+            float internalLight;
+            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getTickDelta());
+            float blockLight = (lightmap >> 4) & 0xF;
+            float skyLight = ((lightmap >> 20) & 0xF) - ambientDarkness;
+            internalLight = blockLight > skyLight ? blockLight : skyLight;
             return internalLight / 15f;
         });
 
@@ -112,6 +118,14 @@ public class CaptureRegistry {
 
         registerBlendShape("lava_height", client -> {
             return (float)client.player.getFluidHeight(FluidTags.LAVA);
+        });
+
+        registerBlendShape("water_submerged", client -> {
+            return client.player.isSubmergedInWater() ? 1f : 0f;
+        });
+
+        registerBlendShape("lava_submerged", client -> {
+            return client.player.isSubmergedIn(FluidTags.LAVA) ? 1f : 0f;
         });
 
         registerBlendShape("time_of_day", client -> {
@@ -144,6 +158,47 @@ public class CaptureRegistry {
             return client.player.isSneaking() ? 1f : 0f;
         });
 
+        registerBlendShape("crawling", client -> {
+            return client.player.isCrawling() ? 1f : 0f;
+        });
+
+        registerBlendShape("climbing", client -> {
+            return client.player.isClimbing() ? 1f : 0f;
+        });
+
+        registerBlendShape("blocking", client -> {
+            return client.player.isBlocking() ? 1f : 0f;
+        });
+
+        registerBlendShape("glowing", client -> {
+            return client.player.isGlowing() ? 1f : 0f;
+        });
+
+        registerBlendShape("frozen", client -> {
+            return client.player.isFrozen() ? 1f : 0f;
+        });
+
+        registerBlendShape("swimming", client -> {
+            return client.player.isSwimming() ? 1f : 0f;
+        });
+
+        registerBlendShape("sprinting", client -> {
+            return client.player.isSprinting() ? 1f : 0f;
+        });
+
+        registerBlendShape("riding_living", client -> {
+            return client.player.getVehicle() instanceof LivingEntity ? 1f : 0f;
+        });
+
+        registerBlendShape("riding_nonliving", client -> {
+            if (client.player.getVehicle() == null) return 0f;
+            return client.player.getVehicle() instanceof LivingEntity ? 0f : 1f;
+        });
+
+        registerBlendShape("elytra_flying", client -> {
+            return client.player.isFallFlying() ? 1f : 0f;
+        });
+
         registerBlendShape("sleeping", client -> {
             return client.player.isSleeping() ? 1f : 0f;
         });
@@ -154,6 +209,11 @@ public class CaptureRegistry {
 
         registerBlendShape("relative_food_level", client -> {
             return (float)client.player.getHungerManager().getFoodLevel() / 20f;
+        });
+
+        registerBlendShape("relative_air_level", client -> {
+            float airLevel = client.player.getAir() > 0 ? client.player.getAir() : 0f;
+            return airLevel / (float)client.player.getMaxAir();
         });
 
         /* HOW DO BONES?
