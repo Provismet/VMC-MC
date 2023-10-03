@@ -12,7 +12,7 @@
 		"sources": "https://github.com/Provismet/VMC-MC"
 	},
 	"license": "MIT",
-	"icon": "assets/modid/icon.png",
+	"icon": "assets/vmcmc/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"client": [
