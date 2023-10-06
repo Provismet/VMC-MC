@@ -56,7 +56,7 @@ repositories {
 Then add the following to your dependencies:
 ```gradle
 dependencies {
-    modImplementation 'com.github.Provismet:VMC-MC:0.1.0'
+    modImplementation 'com.github.Provismet:VMC-MC:0.2.0'
 }
 ```
 Optionally, the tag may be replaced with `$(project.vmcmc_version)`, where this value is defined in your gradle.properties.
