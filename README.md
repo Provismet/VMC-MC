@@ -1,8 +1,8 @@
 # Virtual Motion Capture for Minecraft
 This mod uses (and bundles) the JavaOSC library to implement a VMC layer in Minecraft so vtuber models can be manipulated via in-game actions and events.
 
-This mod is designed specifically for use with [Inochi Session](https://github.com/Inochi2D/inochi-session).  
-However, the VMC protocol (and by extension: Open Sound Control) is used almost universally by vtubing applications - this mod *should* in principle be compatible with most standard vtubing software.
+This mod is made specifically for use with [Inochi Session](https://github.com/Inochi2D/inochi-session), but has been tested with [VMC Protocol Monitor](https://github.com/gpsnmeajp/VMCProtocolMonitor) and should work universally.  
+The VMC protocol (and by extension: Open Sound Control) is used almost universally by vtubing applications - this mod *should* in principle be compatible with most standard vtubing software.
 
 ## Setup
 By default the mod will send data over `127.0.0.1:35404` (localhost, port 35404).  
