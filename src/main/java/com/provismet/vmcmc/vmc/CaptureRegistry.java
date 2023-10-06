@@ -7,22 +7,42 @@ import java.util.function.Function;
 
 import com.illposed.osc.OSCPacket;
 import com.provismet.vmcmc.ClientVMC;
+import com.provismet.vmcmc.utility.HealthTracker;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.Heightmap;
 
 /**
  * A basic registry that stores the callbacks to generate BlendShapes and Bones.
  */
 @Environment(value=EnvType.CLIENT)
 public class CaptureRegistry {
-    private static final HashMap<Identifier, Function<MinecraftClient, Float>> BLEND_REGISTRY = new HashMap<>();
-    private static final HashMap<Identifier, Function<MinecraftClient, List<Float>>> BONE_REGISTRY = new HashMap<>();
+    private static final HashMap<String, Function<MinecraftClient, Float>> BLEND_REGISTRY = new HashMap<>();
+    private static final HashMap<String, Function<MinecraftClient, List<Float>>> BONE_REGISTRY = new HashMap<>();
+    private static final HashMap<String, BlendStore> BLENDSTORE_REGISTRY = new HashMap<>();
+
+    public static BlendStore getBlendStore (Identifier identifier) {
+        return BLENDSTORE_REGISTRY.get(identifier.toString());
+    }
+
+    public static boolean containsKey (String key) {
+        return BLEND_REGISTRY.containsKey(key) || BLENDSTORE_REGISTRY.containsKey(key) || BONE_REGISTRY.containsKey(key);
+    }
+
+    public static boolean containsKey (Identifier key) {
+        return containsKey(key.toString());
+    }
 
     /**
      * Registers a callback that generates a BlendShape. Minecraft identifiers are used to softly-enforce unique names.
@@ -33,7 +53,8 @@ public class CaptureRegistry {
      * @param callback A function that uses the client to output a float.
      */
     public static void registerBlendShape (Identifier identifier, Function<MinecraftClient, Float> callback) {
-        BLEND_REGISTRY.put(identifier, callback);
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: " + identifier.toString());
+        else BLEND_REGISTRY.put(identifier.toString(), callback);
     }
 
     /**
@@ -43,6 +64,20 @@ public class CaptureRegistry {
      */
     public static void registerBlendShape (String path, Function<MinecraftClient, Float> callback) {
         registerBlendShape(ClientVMC.identifier(path), callback);
+    }
+
+    /**
+     * Registers a {@link BlendStore} for output.
+     * @param identifier The identifier of the BlendStore.
+     * @param blendStore The BlendStore to receive input from.
+     */
+    public static void registerBlendStore (Identifier identifier, BlendStore blendStore) {
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendStore register attempt: " + identifier.toString());
+        else BLENDSTORE_REGISTRY.put(identifier.toString(), blendStore);
+    }
+
+    public static void registerBlendStore (String path, BlendStore blendStore) {
+        registerBlendStore(ClientVMC.identifier(path), blendStore);
     }
 
     /**
@@ -56,7 +91,8 @@ public class CaptureRegistry {
      * @param callback A function that uses the client to output a list of floats.
      */
     public static void registerBone (Identifier identifier, Function<MinecraftClient, List<Float>> callback) {
-        BONE_REGISTRY.put(identifier, callback);
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate Bone register attempt: " + identifier.toString());
+        else BONE_REGISTRY.put(identifier.toString(), callback);
     }
 
     /**
@@ -216,6 +252,15 @@ public class CaptureRegistry {
             return airLevel / (float)client.player.getMaxAir();
         });
 
+        registerBlendShape("hotbar", client -> {
+            float slot = client.player.getInventory().selectedSlot;
+            return (slot + 0.1f) / 10f;
+        });
+
+        registerBlendShape("exposed_to_sky", client -> {
+            return client.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, client.player.getBlockPos()).getY() > client.player.getEyeY() ? 0f : 1f;
+        });
+
         /* HOW DO BONES?
         registerBone("head", client -> {
             float yaw = client.player.getHeadYaw();
@@ -234,6 +279,35 @@ public class CaptureRegistry {
             return Arrays.asList((float)client.player.getVelocity().getX(), (float)client.player.getVelocity().getY(), (float)client.player.getVelocity().getZ(), 0f, 0f, 0f, 0f);
         });
         */
+
+        registerBlendStore("attack_player", new BlendStore(0f, 1f, 0.05f, 50));
+        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (player.isSpectator() == false && entity instanceof PlayerEntity) {
+                getBlendStore(ClientVMC.identifier("attack_player")).activate();
+            }
+			return ActionResult.PASS;
+		});
+
+        registerBlendStore("attack_hostile", new BlendStore(0f, 1f, 0.05f, 50));
+        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (player.isSpectator() == false && entity instanceof HostileEntity) {
+                getBlendStore(ClientVMC.identifier("attack_hostile")).activate();
+            }
+			return ActionResult.PASS;
+		});
+
+        registerBlendStore("attack_living", new BlendStore(0f, 1f, 0.05f, 50));
+        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (player.isSpectator() == false && entity instanceof LivingEntity) {
+                getBlendStore(ClientVMC.identifier("attack_living")).activate();
+            }
+			return ActionResult.PASS;
+		});
+
+        registerBlendStore("damage_taken", new BlendStore(0f, 1f, 0.05f, 50));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player != null) HealthTracker.update(client.player.getHealth());
+        });
     }
 
     /**
@@ -246,18 +320,17 @@ public class CaptureRegistry {
         List<OSCPacket> messages = new ArrayList<>(BLEND_REGISTRY.size() + BONE_REGISTRY.size());
 
         BLEND_REGISTRY.forEach((id, callback) -> {
-            messages.add(PacketSender.createBlendShape(id.toString(), callback.apply(client)));
+            messages.add(PacketSender.createBlendShape(id, callback.apply(client)));
         });
+        BLENDSTORE_REGISTRY.forEach((id, blendstore) -> {
+            messages.add(PacketSender.createBlendShape(id, blendstore.get()));
+        });
+
         messages.add(PacketSender.createBlendApply());
         PacketSender.sendBundle(messages);
 
         BONE_REGISTRY.forEach((id, callback) -> {
-            PacketSender.sendBone(id.toString(), callback.apply(client));
+            PacketSender.sendBone(id, callback.apply(client));
         });
-    }
-
-    public enum CaptureType {
-        BLEND_SHAPE,
-        BONE
     }
 }
