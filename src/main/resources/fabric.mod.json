@@ -17,13 +17,16 @@
 	"entrypoints": {
 		"client": [
 			"com.provismet.vmcmc.ClientVMC"
+		],
+		"modmenu": [
+			"com.provismet.vmcmc.config.ModMenuHook"
 		]
 	},
 	"mixins": [
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": ">=1.18.2",
+		"minecraft": ">=1.19",
 		"java": ">=17",
 		"fabric-api": "*"
 	}

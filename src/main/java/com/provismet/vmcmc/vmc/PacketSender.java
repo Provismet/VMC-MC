@@ -19,7 +19,7 @@ import com.provismet.vmcmc.ClientVMC;
  */
 public class PacketSender {
     public static final String LOCALHOST = "127.0.0.1";
-    public static final int DEFAULT_PORT = 35404;
+    public static final int DEFAULT_PORT = 39540;
 
     private static OSCPortOut portOut;
 
@@ -29,6 +29,15 @@ public class PacketSender {
      * @param port The port number.
      */
     public static void initPort (String host, int port) {
+        if (portOut != null) {
+            try {
+                portOut.close();
+            }
+            catch (IOException e) {
+                ClientVMC.LOGGER.error("Failed to close port:", e);
+            }
+        }
+
         try {
             portOut = new OSCPortOut(InetAddress.getByName(host), port); // Use 127.0.0.1 and NOT InetAddress.getLocalHost(), the latter does not work.
             ClientVMC.LOGGER.info("Created VMC socket at " + host + ":" + port);

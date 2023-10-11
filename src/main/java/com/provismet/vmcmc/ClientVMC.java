@@ -22,7 +22,7 @@ public class ClientVMC implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient () {
-		Pair<String,Integer> portInfo = Config.getPortInfo();
+		Pair<String,Integer> portInfo = Config.readJSON();
 		PacketSender.initPort(portInfo.getLeft(), portInfo.getRight());
 		CaptureRegistry.registerStandardEvents();
 

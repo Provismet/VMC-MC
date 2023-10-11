@@ -1,0 +1,11 @@
+{
+    "title.vmcmc.config": "Virtual Motion Capture",
+
+    "category.vmcmc.general": "General",
+
+    "tooltip.vmcmc.general.ip": "Must be a valid IP address. e.g. 127.0.0.1",
+    "tooltip.vmcmc.general.port": "Must be a value between 1 and 65535.",
+
+    "entry.vmcmc.general.ip": "IP Address",
+    "entry.vmcmc.general.port": "Port"
+}
