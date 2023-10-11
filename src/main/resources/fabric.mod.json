@@ -9,7 +9,8 @@
 	],
 	"contact": {
 		"homepage": "https://github.com/Provismet/VMC-MC",
-		"sources": "https://github.com/Provismet/VMC-MC"
+		"sources": "https://github.com/Provismet/VMC-MC",
+		"issues": "https://github.com/Provismet/VMC-MC/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/vmcmc/icon.png",
