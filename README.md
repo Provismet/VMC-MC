@@ -5,7 +5,7 @@ This mod is made specifically for use with [Inochi Session](https://github.com/I
 The VMC protocol (and by extension: Open Sound Control) is used almost universally by vtubing applications - this mod *should* in principle be compatible with most standard vtubing software.
 
 ## Setup
-By default the mod will send data over `127.0.0.1:35404` (localhost, port 35940).  
+By default the mod will send data over `127.0.0.1:35940` (localhost, port 35940).  
 After the first launch, a config file will be created under `config/vmc-mc.json`. If you wish to change the IP or port (for example, if you use multiple PCs to stream/record) then change the IP and port as necessary in this file. The changes will be read on the next launch.
 
 ## Default Tracking
