@@ -1,0 +1,40 @@
+name: VMC Issues
+description: Report issues with the VMC implementation of the mod, or the mod not working with certain vtubing software.
+labels: "vmc"
+projects: "Provismet/3"
+body:
+  - type: dropdown
+    id: vmc-application
+    attributes:
+      label: Application
+      options:
+        - Inochi Session
+        - VSeeFace
+        - Other (specify in desc)
+    validations:
+      required: true
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Description
+      placeholder: Describe the error here...
+    validations:
+      required: true
+  - type: input
+    id: mod-ver
+    attributes:
+      label: Mod Version
+      placeholder: Affected mod version or versions. Do NOT simply write "latest".
+    validations:
+      required: true
+  - type: dropdown
+    id: modloader
+    attributes:
+      label: Mod Loader
+      multiple: true
+      options:
+        - Fabric
+        - Quilt
+        - Other (specify in desc)
+    validations:
+      required: true
