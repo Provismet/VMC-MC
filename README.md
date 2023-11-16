@@ -6,7 +6,8 @@ The VMC protocol (and by extension: Open Sound Control) is used almost universal
 
 ## Setup
 By default the mod will send data over `127.0.0.1:35940` (localhost, port 35940).  
-After the first launch, a config file will be created under `config/vmc-mc.json`. If you wish to change the IP or port (for example, if you use multiple PCs to stream/record) then change the IP and port as necessary in this file. The changes will be read on the next launch.
+After the first launch, a config file will be created under `config/vmc-mc.json`. If you wish to change the IP or port (for example, if you use multiple PCs to stream/record) then change the IP and port as necessary in this file. The changes will be read on the next launch.  
+You may also change the port and IP via the mod's setting menu (available only if you have Mod Menu and Cloth Config).
 
 ## Default Tracking
 Almost all blendshapes sent by VMC-MC are bound to the range of 0 - 1. Some blendshapes are also boolean, only outputting 0 or 1, with no in-between.
@@ -43,7 +44,8 @@ By default, the mod sends the following tracking data:
 - riding nonliving (boolean)
 - elytra flying (boolean)
 
-## Dependency
+## Dependency Implementation and Addons
+### Adding VMC-MC To Your Workspace
 If you want to use this mod as a dependency, it is available via [jitpack.io](https://jitpack.io/#Provismet/VMC-MC/).
 
 Add the following your your repositories (at the top of your build.gradle):
@@ -56,8 +58,26 @@ repositories {
 Then add the following to your dependencies:
 ```gradle
 dependencies {
-    modImplementation 'com.github.Provismet:VMC-MC:0.2.0'
+    modImplementation 'com.github.Provismet:VMC-MC:0.4.0'
 }
 ```
 Optionally, the tag may be replaced with `$(project.vmcmc_version)`, where this value is defined in your gradle.properties.
 
+### Extending VMC-MC
+VMC-MC creates an [entrypoint](https://fabricmc.net/wiki/documentation:entrypoint) that other mods may use for easy extension.  
+Create a class that implements the `VmcApi` interface. Code within the `onInitializeVMC()` function will be called at the end of VMC-MC's setup. Use this function to register additional BlendShapes or VMC related client events.
+
+In your `fabric.mod.json` add an entrypoint labeled `vmc-mc` to the entrypoints object, for example:
+```json
+"entrypoints": {
+	"client": [
+	    "path.to.your.client.initializer"
+	],
+    "vmc-mc": [
+	    "path.to.your.vmc.initializer"
+    ]
+}
+```
+
+Use `CaptureRegistry.registerBlendShape(...)` and `CaptureRegistry.registerBlendStore(...)` to register additional outputs.  
+See `CaptureRegistry.registerStandardEvents()` for examples.
