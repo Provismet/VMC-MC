@@ -1,4 +1,10 @@
+<div align="center">
+
 # Virtual Motion Capture for Minecraft
+[![](https://img.shields.io/jitpack/version/com.github.Provismet/VMC-MC?style=flat-square&logo=jitpack&color=F6F6F6)](https://jitpack.io/#Provismet/VMC-MC) [![](https://img.shields.io/modrinth/dt/ub8B8TcT?style=flat-square&logo=modrinth&color=F6F6F6)](https://modrinth.com/mod/virtual-motion-capture-for-minecraft) [![](https://img.shields.io/curseforge/dt/922189?style=flat-square&logo=curseforge&color=F6F6F6)](https://www.curseforge.com/minecraft/mc-mods/vmc-mc)
+
+</div>
+
 This mod uses (and bundles) the JavaOSC library to implement a VMC layer in Minecraft so vtuber models can be manipulated via in-game actions and events.
 
 This mod is made specifically for use with [Inochi Session](https://github.com/Inochi2D/inochi-session), but has been tested with [VMC Protocol Monitor](https://github.com/gpsnmeajp/VMCProtocolMonitor) and should work universally.  
