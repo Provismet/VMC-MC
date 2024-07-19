@@ -1,0 +1,29 @@
+name: Suggestion
+description: Have an idea for a new feature or general improvement? Explain it here.
+labels: ["enhancement"]
+projects: "Provismet/3"
+body:
+  - type: dropdown
+    id: suggestion_type
+    attributes:
+      label: Type of Suggestion
+      options:
+        - New Feature
+        - Modify Existing Functionality
+        - Mod Compatibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe your idea in detail. (What does it do? How does it activate? Does it interact with any existing features?)
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason
+      placeholder: Describe why you want this feature. (How would it affect your gameplay? Do you have a specific use-case in mind? Are you a modder trying to link with this mod? etc)
+
