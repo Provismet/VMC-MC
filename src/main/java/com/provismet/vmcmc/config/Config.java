@@ -8,13 +8,16 @@ import com.google.gson.stream.JsonReader;
 import com.provismet.vmcmc.ClientVMC;
 import com.provismet.vmcmc.vmc.PacketSender;
 
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 
 public class Config {
     private static final String HOST = "host";
     private static final String PORT = "port";
+    private static final String COMPAT_IDENTIFIERS_LABEL = "compatibility_identifiers";
     private static final String FILEPATH = "config/vmc-mc.json";
 
+    private static boolean useCompatIds = false;
     private static String host = PacketSender.LOCALHOST;
     private static int port = PacketSender.DEFAULT_PORT;
 
@@ -35,6 +38,10 @@ public class Config {
                         port = parser.nextInt();
                         break;
 
+                    case COMPAT_IDENTIFIERS_LABEL:
+                        useCompatIds = parser.nextBoolean();
+                        break;
+
                     default:
                         break;
                 }
@@ -45,20 +52,21 @@ public class Config {
         catch (FileNotFoundException e) {
             ClientVMC.LOGGER.warn("Config not found, creating default config.");
             saveJSON();
-            return new Pair<String,Integer>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
+            return new Pair<>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
         }
         catch (Exception e) {
             ClientVMC.LOGGER.warn("Config could not be read, using default parameters.", e);
-            return new Pair<String,Integer>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
+            return new Pair<>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
         }
     }
 
     public static void saveJSON () {
         try {
             FileWriter writer = new FileWriter(FILEPATH);
-            String simpleJSON = String.format("{\n\t\"%s\": \"%s\",\n\t\"%s\": %d\n}",
+            String simpleJSON = String.format("{\n\t\"%s\": \"%s\",\n\t\"%s\": %d,\n\t\"%s\": %b\n}",
                 HOST, host,
-                PORT, port
+                PORT, port,
+                COMPAT_IDENTIFIERS_LABEL, useCompatIds
             );
             writer.write(simpleJSON);
             writer.close();
@@ -66,6 +74,19 @@ public class Config {
         catch (Exception e) {
             
         }
+    }
+
+    public static boolean shouldUseCompatibilityIds () {
+        return useCompatIds;
+    }
+
+    public static void setCompatibilityIdMode (boolean shouldUseCompat) {
+        useCompatIds = shouldUseCompat;
+    }
+
+    public static String getBlendName (Identifier blendshape) {
+        if (useCompatIds) return blendshape.toString().replace(':', '_');
+        return blendshape.toString();
     }
 
     public static String getIP () {

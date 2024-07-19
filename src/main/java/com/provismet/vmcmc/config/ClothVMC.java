@@ -31,6 +31,13 @@ public class ClothVMC {
             .build()
         );
 
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("entry.vmcmc.general.compat_identifiers"), Config.shouldUseCompatibilityIds())
+            .setDefaultValue(false)
+            .setTooltip(Text.translatable("tooltip.vmcmc.general.compat_identifiers"))
+            .setSaveConsumer(newValue -> Config.setCompatibilityIdMode(newValue))
+            .build()
+        );
+
         builder.setSavingRunnable(() -> {
             Config.saveJSON();
             PacketSender.initPort(Config.getIP(), Config.getPort());

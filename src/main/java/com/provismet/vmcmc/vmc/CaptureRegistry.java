@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import com.illposed.osc.OSCPacket;
 import com.provismet.vmcmc.ClientVMC;
+import com.provismet.vmcmc.config.Config;
 import com.provismet.vmcmc.utility.HealthTracker;
 
 import net.fabricmc.api.EnvType;
@@ -33,7 +34,7 @@ public class CaptureRegistry {
     private static final HashMap<String, BlendStore> BLENDSTORE_REGISTRY = new HashMap<>();
 
     public static BlendStore getBlendStore (Identifier identifier) {
-        return BLENDSTORE_REGISTRY.get(identifier.toString());
+        return BLENDSTORE_REGISTRY.get(Config.getBlendName(identifier));
     }
 
     public static boolean containsKey (String key) {
@@ -41,20 +42,20 @@ public class CaptureRegistry {
     }
 
     public static boolean containsKey (Identifier key) {
-        return containsKey(key.toString());
+        return containsKey(Config.getBlendName(key));
     }
 
     /**
      * Registers a callback that generates a BlendShape. Minecraft identifiers are used to softly-enforce unique names.
-     * 
-     * It is recommend, but not required, that callbacks have their output bound between 0 and 1.
+     * <p>
+     * It is recommended, but not required, that callbacks have their output bound between 0 and 1.
      * 
      * @param identifier The ID for the BlendShape. Note: This will be converted into a string when being sent over OSC.
      * @param callback A function that uses the client to output a float.
      */
     public static void registerBlendShape (Identifier identifier, Function<MinecraftClient, Float> callback) {
-        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: " + identifier.toString());
-        else BLEND_REGISTRY.put(identifier.toString(), callback);
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: " + Config.getBlendName(identifier));
+        else BLEND_REGISTRY.put(Config.getBlendName(identifier), callback);
     }
 
     /**
@@ -72,8 +73,8 @@ public class CaptureRegistry {
      * @param blendStore The BlendStore to receive input from.
      */
     public static void registerBlendStore (Identifier identifier, BlendStore blendStore) {
-        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendStore register attempt: " + identifier.toString());
-        else BLENDSTORE_REGISTRY.put(identifier.toString(), blendStore);
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendStore register attempt: " + Config.getBlendName(identifier));
+        else BLENDSTORE_REGISTRY.put(Config.getBlendName(identifier), blendStore);
     }
 
     public static void registerBlendStore (String path, BlendStore blendStore) {
@@ -81,12 +82,12 @@ public class CaptureRegistry {
     }
 
     /**
-     * NOTE: BONES ARE CURRENTLY NON-FUNCTIONAL. USE BLENDSHAPES INSTEAD.
-     * 
      * Registers a callback that generates a Bone.
      * Bones are defined as 7 floats (a 3D coordinate and a quaternion).
      * {@code [x coordinate, y coordinate, z coordinate, quaternion-x, quaternion-y, quaternion-z, quaternion-w]}
-     * 
+     *
+     * @implNote BONES ARE CURRENTLY NON-FUNCTIONAL. USE BLENDSHAPES INSTEAD.
+     *
      * @param identifier The ID for the Bone. Note: This will be converted into a string when being sent over OSC.
      * @param callback A function that uses the client to output a list of floats.
      */
