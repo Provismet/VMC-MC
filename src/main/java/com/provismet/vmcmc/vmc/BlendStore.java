@@ -3,7 +3,7 @@ package com.provismet.vmcmc.vmc;
 /**
  * Used for action/event callbacks that communicate BlendShapes.
  * BlendStores are a layer of abstraction that allows instant events to be read as states with lingering values.
- * 
+ * <p>
  * BlendShapes are intended for states that can be read every tick, and therefore don't fit well with event callbacks.
  */
 public class BlendStore {

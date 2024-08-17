@@ -7,7 +7,7 @@ package com.provismet.vmcmc.api;
 public interface VmcApi {
     /**
      * An initializer only run on the client-side.
-     * 
+     * <p>
      * Adding blendshapes, VMC related client-ticks, and hooks to blendstores should be handled within this method.
      */
     void onInitializeVMC ();

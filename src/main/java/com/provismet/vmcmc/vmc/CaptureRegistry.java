@@ -98,7 +98,7 @@ public class CaptureRegistry {
 
     /**
      * NOTE: BONES ARE CURRENTLY NON-FUNCTIONAL. USE BLENDSHAPES INSTEAD.
-     * 
+     * <p>
      * Registers a callback see {@link CaptureRegistry#registerBone(Identifier, Function)} with a string instead of an Identifier.
      * Bones are defined as 7 floats (a 3D coordinate and a quaternion).
      * {@code [x coordinate, y coordinate, z coordinate, quaternion-x, quaternion-y, quaternion-z, quaternion-w]}
@@ -113,6 +113,7 @@ public class CaptureRegistry {
     /**
      * Registers the standard vmc-mc callbacks. This is called during mod initialisation.
      */
+    @SuppressWarnings("DataFlowIssue")
     public static void registerStandardEvents () {
         // Your block light (light gained from torches, etc).
         registerBlendShape("block_light", client -> {
@@ -213,7 +214,7 @@ public class CaptureRegistry {
 
         registerBlendStore("attack_player", new BlendStore(0f, 1f, 0.05f, 50));
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (player.isSpectator() == false && entity instanceof PlayerEntity) {
+            if (!player.isSpectator() && entity instanceof PlayerEntity) {
                 getBlendStore(ClientVMC.identifier("attack_player")).activate();
             }
 			return ActionResult.PASS;
@@ -221,7 +222,7 @@ public class CaptureRegistry {
 
         registerBlendStore("attack_hostile", new BlendStore(0f, 1f, 0.05f, 50));
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (player.isSpectator() == false && entity instanceof HostileEntity) {
+            if (!player.isSpectator() && entity instanceof HostileEntity) {
                 getBlendStore(ClientVMC.identifier("attack_hostile")).activate();
             }
 			return ActionResult.PASS;
@@ -229,7 +230,7 @@ public class CaptureRegistry {
 
         registerBlendStore("attack_living", new BlendStore(0f, 1f, 0.05f, 50));
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (player.isSpectator() == false && entity instanceof LivingEntity) {
+            if (!player.isSpectator() && entity instanceof LivingEntity) {
                 getBlendStore(ClientVMC.identifier("attack_living")).activate();
             }
 			return ActionResult.PASS;

@@ -14,7 +14,7 @@ import com.provismet.vmcmc.ClientVMC;
 
 /**
  * A singleton class that provides utility in creating and sending messages using VMC.
- * 
+ * <p>
  * This singleton is guaranteed to exist after the vmc-mc mod has been initialised on the client.
  */
 public class PacketSender {
@@ -96,7 +96,7 @@ public class PacketSender {
         try {
             portOut.send(createBone(name, XYZ_Quaternion));
         }
-        catch (Exception e) {
+        catch (Exception ignored) {
 
         }
     }
@@ -117,7 +117,7 @@ public class PacketSender {
         try {
             portOut.send(createBlendApply());
         }
-        catch (Exception e) {
+        catch (Exception ignored) {
 
         }
     }
