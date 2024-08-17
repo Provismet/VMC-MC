@@ -54,7 +54,7 @@ public class CaptureRegistry {
      * @param callback A function that uses the client to output a float.
      */
     public static void registerBlendShape (Identifier identifier, Function<MinecraftClient, Float> callback) {
-        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: " + Config.getBlendName(identifier));
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: {}", Config.getBlendName(identifier));
         else BLEND_REGISTRY.put(Config.getBlendName(identifier), callback);
     }
 
@@ -73,7 +73,7 @@ public class CaptureRegistry {
      * @param blendStore The BlendStore to receive input from.
      */
     public static void registerBlendStore (Identifier identifier, BlendStore blendStore) {
-        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendStore register attempt: " + Config.getBlendName(identifier));
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendStore register attempt: {}", Config.getBlendName(identifier));
         else BLENDSTORE_REGISTRY.put(Config.getBlendName(identifier), blendStore);
     }
 
@@ -92,7 +92,7 @@ public class CaptureRegistry {
      * @param callback A function that uses the client to output a list of floats.
      */
     public static void registerBone (Identifier identifier, Function<MinecraftClient, List<Float>> callback) {
-        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate Bone register attempt: " + identifier.toString());
+        if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate Bone register attempt: {}", identifier.toString());
         else BONE_REGISTRY.put(identifier.toString(), callback);
     }
 
@@ -116,14 +116,14 @@ public class CaptureRegistry {
     public static void registerStandardEvents () {
         // Your block light (light gained from torches, etc).
         registerBlendShape("block_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getTickDelta());
+			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
             float blockLight = (lightmap >> 4) & 0xF;
 			return blockLight / 15f;
 		});
 
         // This refers to the strength of your sky exposure. It's the same value as from the F3 menu and is NOT the same as actual brightness (but DOES impact it).
         registerBlendShape("sky_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getTickDelta());
+			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
             float skyLight = (lightmap >> 20) & 0xF;
 			return skyLight / 15f;
 		});
@@ -138,33 +138,18 @@ public class CaptureRegistry {
 
             // Manually calculate light this way because it accounts for mods that modify the player's block-light value.
             float internalLight;
-            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getTickDelta());
+            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
             float blockLight = (lightmap >> 4) & 0xF;
             float skyLight = ((lightmap >> 20) & 0xF) - ambientDarkness;
-            internalLight = blockLight > skyLight ? blockLight : skyLight;
+            internalLight = Math.max(blockLight, skyLight);
             return internalLight / 15f;
         });
 
-        registerBlendShape("relative_health", client -> {
-            return client.player.getHealth() / client.player.getMaxHealth();
-        });
-
-        registerBlendShape("water_height", client -> {
-            return (float)client.player.getFluidHeight(FluidTags.WATER);
-        });
-
-        registerBlendShape("lava_height", client -> {
-            return (float)client.player.getFluidHeight(FluidTags.LAVA);
-        });
-
-        registerBlendShape("water_submerged", client -> {
-            return client.player.isSubmergedInWater() ? 1f : 0f;
-        });
-
-        registerBlendShape("lava_submerged", client -> {
-            return client.player.isSubmergedIn(FluidTags.LAVA) ? 1f : 0f;
-        });
-
+        registerBlendShape("relative_health", client -> client.player.getHealth() / client.player.getMaxHealth());
+        registerBlendShape("water_height", client -> (float)client.player.getFluidHeight(FluidTags.WATER));
+        registerBlendShape("lava_height", client -> (float)client.player.getFluidHeight(FluidTags.LAVA));
+        registerBlendShape("water_submerged", client -> client.player.isSubmergedInWater() ? 1f : 0f);
+        registerBlendShape("lava_submerged", client -> client.player.isSubmergedIn(FluidTags.LAVA) ? 1f : 0f);
         registerBlendShape("time_of_day", client -> {
             float time = client.world.getTimeOfDay();
             while (time >= 24000f) {
@@ -172,95 +157,40 @@ public class CaptureRegistry {
             }
             return time / 24000f;
         });
-
         registerBlendShape("rain_amount", client -> {
             if (client.world.isThundering()) return 1f;
             else if (client.world.isRaining()) return 0.5f;
             else return 0f;
         });
-
-        registerBlendShape("on_fire", client -> {
-            return client.player.isOnFire() ? 1f : 0f;
-        });
-
-        registerBlendShape("experience", client -> {
-            return (float)client.player.experienceLevel + client.player.experienceProgress;
-        });
-
-        registerBlendShape("is_wet", client -> {
-            return client.player.isWet() ? 1f : 0f;
-        });
-
-        registerBlendShape("sneaking", client -> {
-            return client.player.isSneaking() ? 1f : 0f;
-        });
-
-        registerBlendShape("crawling", client -> {
-            return client.player.isCrawling() ? 1f : 0f;
-        });
-
-        registerBlendShape("climbing", client -> {
-            return client.player.isClimbing() ? 1f : 0f;
-        });
-
-        registerBlendShape("blocking", client -> {
-            return client.player.isBlocking() ? 1f : 0f;
-        });
-
-        registerBlendShape("glowing", client -> {
-            return client.player.isGlowing() ? 1f : 0f;
-        });
-
-        registerBlendShape("frozen", client -> {
-            return client.player.isFrozen() ? 1f : 0f;
-        });
-
-        registerBlendShape("swimming", client -> {
-            return client.player.isSwimming() ? 1f : 0f;
-        });
-
-        registerBlendShape("sprinting", client -> {
-            return client.player.isSprinting() ? 1f : 0f;
-        });
-
-        registerBlendShape("riding_living", client -> {
-            return client.player.getVehicle() instanceof LivingEntity ? 1f : 0f;
-        });
-
+        registerBlendShape("on_fire", client -> client.player.isOnFire() ? 1f : 0f);
+        registerBlendShape("experience", client -> (float)client.player.experienceLevel + client.player.experienceProgress);
+        registerBlendShape("is_wet", client -> client.player.isWet() ? 1f : 0f);
+        registerBlendShape("sneaking", client -> client.player.isSneaking() ? 1f : 0f);
+        registerBlendShape("crawling", client -> client.player.isCrawling() ? 1f : 0f);
+        registerBlendShape("climbing", client -> client.player.isClimbing() ? 1f : 0f);
+        registerBlendShape("blocking", client -> client.player.isBlocking() ? 1f : 0f);
+        registerBlendShape("glowing", client -> client.player.isGlowing() ? 1f : 0f);
+        registerBlendShape("frozen", client -> client.player.isFrozen() ? 1f : 0f);
+        registerBlendShape("swimming", client -> client.player.isSwimming() ? 1f : 0f);
+        registerBlendShape("sprinting", client -> client.player.isSprinting() ? 1f : 0f);
+        registerBlendShape("riding_living", client -> client.player.getVehicle() instanceof LivingEntity ? 1f : 0f);
         registerBlendShape("riding_nonliving", client -> {
             if (client.player.getVehicle() == null) return 0f;
             return client.player.getVehicle() instanceof LivingEntity ? 0f : 1f;
         });
-
-        registerBlendShape("elytra_flying", client -> {
-            return client.player.isFallFlying() ? 1f : 0f;
-        });
-
-        registerBlendShape("sleeping", client -> {
-            return client.player.isSleeping() ? 1f : 0f;
-        });
-
-        registerBlendShape("alive", client -> {
-            return client.player.isAlive() ? 1f : 0f;
-        });
-
-        registerBlendShape("relative_food_level", client -> {
-            return (float)client.player.getHungerManager().getFoodLevel() / 20f;
-        });
-
+        registerBlendShape("elytra_flying", client -> client.player.isFallFlying() ? 1f : 0f);
+        registerBlendShape("sleeping", client -> client.player.isSleeping() ? 1f : 0f);
+        registerBlendShape("alive", client -> client.player.isAlive() ? 1f : 0f);
+        registerBlendShape("relative_food_level", client -> (float)client.player.getHungerManager().getFoodLevel() / 20f);
         registerBlendShape("relative_air_level", client -> {
             float airLevel = client.player.getAir() > 0 ? client.player.getAir() : 0f;
             return airLevel / (float)client.player.getMaxAir();
         });
-
         registerBlendShape("hotbar", client -> {
             float slot = client.player.getInventory().selectedSlot;
             return (slot + 0.1f) / 10f;
         });
-
-        registerBlendShape("exposed_to_sky", client -> {
-            return client.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, client.player.getBlockPos()).getY() > client.player.getEyeY() ? 0f : 1f;
-        });
+        registerBlendShape("exposed_to_sky", client -> client.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, client.player.getBlockPos()).getY() > client.player.getEyeY() ? 0f : 1f);
 
         /* HOW DO BONES?
         registerBone("head", client -> {

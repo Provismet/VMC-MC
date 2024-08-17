@@ -19,7 +19,7 @@ public class ClientVMC implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
 	public static Identifier identifier (String path) {
-		return new Identifier(MODID, path);
+		return Identifier.of(MODID, path);
 	}
 
 	@Override
@@ -34,12 +34,10 @@ public class ClientVMC implements ClientModInitializer {
 				entrypoint.getEntrypoint().onInitializeVMC();
 			}
 			catch (Throwable e) {
-				LOGGER.error("Error caused by mod " + otherModId + " during integration.", e);
+                LOGGER.error("Error caused by mod {} during integration: ", otherModId, e);
 			}
 		});
 
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			CaptureRegistry.iterate(client);
-		});
+		ClientTickEvents.END_CLIENT_TICK.register(CaptureRegistry::iterate);
 	}
 }
