@@ -25,13 +25,13 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}") {
+	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-	modApi "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-	implementation 'com.illposed.osc:javaosc-core:0.8'
-	include 'com.illposed.osc:javaosc-core:0.8'
+	implementation 'com.illposed.osc:javaosc-core:0.9'
+	include 'com.illposed.osc:javaosc-core:0.9'
 }
 
 processResources {
