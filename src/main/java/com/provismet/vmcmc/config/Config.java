@@ -9,7 +9,6 @@ import com.provismet.vmcmc.ClientVMC;
 import com.provismet.vmcmc.vmc.PacketSender;
 
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
 
 public class Config {
     private static final String HOST = "host";
@@ -21,7 +20,7 @@ public class Config {
     private static String host = PacketSender.LOCALHOST;
     private static int port = PacketSender.DEFAULT_PORT;
 
-    public static Pair<String,Integer> readJSON () {
+    public static ConnectionInfo readJSON () {
         try {
             FileReader reader = new FileReader(FILEPATH);
             JsonReader parser = new JsonReader(reader);
@@ -47,16 +46,16 @@ public class Config {
                 }
             }
             parser.close();
-            return new Pair<>(host, port);
+            return new ConnectionInfo(host, port);
         }
         catch (FileNotFoundException e) {
             ClientVMC.LOGGER.warn("Config not found, creating default config.");
             saveJSON();
-            return new Pair<>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
+            return ConnectionInfo.getDefault();
         }
         catch (Exception e) {
             ClientVMC.LOGGER.warn("Config could not be read, using default parameters.", e);
-            return new Pair<>(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
+            return ConnectionInfo.getDefault();
         }
     }
 
@@ -71,7 +70,7 @@ public class Config {
             writer.write(simpleJSON);
             writer.close();
         }
-        catch (Exception e) {
+        catch (Exception ignored) {
             
         }
     }
@@ -106,7 +105,13 @@ public class Config {
             port = newPort;
         }
         else {
-            ClientVMC.LOGGER.error("Attempted to set illegal port: " + newPort);
+            ClientVMC.LOGGER.error("Attempted to set illegal port: {}", newPort);
+        }
+    }
+
+    public record ConnectionInfo (String host, int port) {
+        public static ConnectionInfo getDefault () {
+            return new ConnectionInfo(PacketSender.LOCALHOST, PacketSender.DEFAULT_PORT);
         }
     }
 }

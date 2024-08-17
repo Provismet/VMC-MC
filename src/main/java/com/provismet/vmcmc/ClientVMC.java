@@ -24,8 +24,8 @@ public class ClientVMC implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient () {
-		Pair<String,Integer> portInfo = Config.readJSON();
-		PacketSender.initPort(portInfo.getLeft(), portInfo.getRight());
+		Config.ConnectionInfo portInfo = Config.readJSON();
+		PacketSender.initPort(portInfo.host(), portInfo.port());
 		CaptureRegistry.registerStandardEvents();
 
 		FabricLoader.getInstance().getEntrypointContainers(MODID, VmcApi.class).forEach(entrypoint -> {
