@@ -179,7 +179,7 @@ public class CaptureRegistry {
             if (client.player.getVehicle() == null) return 0f;
             return client.player.getVehicle() instanceof LivingEntity ? 0f : 1f;
         });
-        registerBlendShape("elytra_flying", client -> client.player.isFallFlying() ? 1f : 0f);
+        registerBlendShape("elytra_flying", client -> client.player.isGliding() ? 1f : 0f);
         registerBlendShape("sleeping", client -> client.player.isSleeping() ? 1f : 0f);
         registerBlendShape("alive", client -> client.player.isAlive() ? 1f : 0f);
         registerBlendShape("relative_food_level", client -> (float)client.player.getHungerManager().getFoodLevel() / 20f);

@@ -20,21 +20,21 @@ public class ClothVMC {
         general.addEntry(entryBuilder.startStrField(Text.translatable("entry.vmcmc.general.ip"), Config.getIP())
             .setDefaultValue(PacketSender.LOCALHOST)
             .setTooltip(Text.translatable("tooltip.vmcmc.general.ip"))
-            .setSaveConsumer(newValue -> Config.setIP(newValue))
+            .setSaveConsumer(Config::setIP)
             .build()
         );
 
         general.addEntry(entryBuilder.startIntField(Text.translatable("entry.vmcmc.general.port"), Config.getPort())
             .setDefaultValue(PacketSender.DEFAULT_PORT)
             .setTooltip(Text.translatable("tooltip.vmcmc.general.port"))
-            .setSaveConsumer(newValue -> Config.setPort(newValue))
+            .setSaveConsumer(Config::setPort)
             .build()
         );
 
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("entry.vmcmc.general.compat_identifiers"), Config.shouldUseCompatibilityIds())
             .setDefaultValue(false)
             .setTooltip(Text.translatable("tooltip.vmcmc.general.compat_identifiers"))
-            .setSaveConsumer(newValue -> Config.setCompatibilityIdMode(newValue))
+            .setSaveConsumer(Config::setCompatibilityIdMode)
             .build()
         );
 
