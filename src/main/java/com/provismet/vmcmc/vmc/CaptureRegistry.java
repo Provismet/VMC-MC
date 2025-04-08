@@ -117,14 +117,14 @@ public class CaptureRegistry {
     public static void registerStandardEvents () {
         // Your block light (light gained from torches, etc).
         registerBlendShape("block_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
+			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
             float blockLight = (lightmap >> 4) & 0xF;
 			return blockLight / 15f;
 		});
 
         // This refers to the strength of your sky exposure. It's the same value as from the F3 menu and is NOT the same as actual brightness (but DOES impact it).
         registerBlendShape("sky_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
+			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
             float skyLight = (lightmap >> 20) & 0xF;
 			return skyLight / 15f;
 		});
@@ -139,7 +139,7 @@ public class CaptureRegistry {
 
             // Manually calculate light this way because it accounts for mods that modify the player's block-light value.
             float internalLight;
-            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickDelta(true));
+            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
             float blockLight = (lightmap >> 4) & 0xF;
             float skyLight = ((lightmap >> 20) & 0xF) - ambientDarkness;
             internalLight = Math.max(blockLight, skyLight);
@@ -165,7 +165,7 @@ public class CaptureRegistry {
         });
         registerBlendShape("on_fire", client -> client.player.isOnFire() ? 1f : 0f);
         registerBlendShape("experience", client -> (float)client.player.experienceLevel + client.player.experienceProgress);
-        registerBlendShape("is_wet", client -> client.player.isWet() ? 1f : 0f);
+        registerBlendShape("is_wet", client -> client.player.isTouchingWaterOrRain() ? 1f : 0f);
         registerBlendShape("sneaking", client -> client.player.isSneaking() ? 1f : 0f);
         registerBlendShape("crawling", client -> client.player.isCrawling() ? 1f : 0f);
         registerBlendShape("climbing", client -> client.player.isClimbing() ? 1f : 0f);
@@ -188,7 +188,7 @@ public class CaptureRegistry {
             return airLevel / (float)client.player.getMaxAir();
         });
         registerBlendShape("hotbar", client -> {
-            float slot = client.player.getInventory().selectedSlot;
+            float slot = client.player.getInventory().getSelectedSlot();
             return (slot + 0.1f) / 10f;
         });
         registerBlendShape("exposed_to_sky", client -> client.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, client.player.getBlockPos()).getY() > client.player.getEyeY() ? 0f : 1f);
