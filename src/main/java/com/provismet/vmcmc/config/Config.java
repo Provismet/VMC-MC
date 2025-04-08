@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.provismet.vmcmc.ClientVMC;
 import com.provismet.vmcmc.vmc.PacketSender;
@@ -60,15 +62,12 @@ public class Config {
     }
 
     public static void saveJSON () {
-        try {
-            FileWriter writer = new FileWriter(FILEPATH);
-            String simpleJSON = String.format("{\n\t\"%s\": \"%s\",\n\t\"%s\": %d,\n\t\"%s\": %b\n}",
-                HOST, host,
-                PORT, port,
-                COMPAT_IDENTIFIERS_LABEL, useCompatIds
-            );
-            writer.write(simpleJSON);
-            writer.close();
+        try (FileWriter writer = new FileWriter(FILEPATH)) {
+            JsonObject json = new JsonObject();
+            json.addProperty(HOST, host);
+            json.addProperty(PORT, port);
+            json.addProperty(COMPAT_IDENTIFIERS_LABEL, useCompatIds);
+            writer.write(new GsonBuilder().setPrettyPrinting().create().toJson(json));
         }
         catch (Exception ignored) {
             
