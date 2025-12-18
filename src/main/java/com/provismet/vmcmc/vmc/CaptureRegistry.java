@@ -21,7 +21,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Heightmap;
 
 /**
@@ -131,17 +130,11 @@ public class CaptureRegistry {
 
         // The actual light level of the area. Use this if you want brightness that includes blocks and the sky.
         registerBlendShape("internal_light", client -> {
-            // This section is just a copy of World.getAmbientDarkness() because it does not tick the calculations on the render thread (only outputs 0).
-            double rainGradient = 1.0 - (double)(client.world.getRainGradient(1.0f) * 5.0f) / 16.0;
-            double thunderGradient = 1.0 - (double)(client.world.getThunderGradient(1.0f) * 5.0f) / 16.0;
-            double skyAngleMath = 0.5 + 2.0 * MathHelper.clamp((double)MathHelper.cos(client.world.getSkyAngle(1.0f) * ((float)Math.PI * 2)), -0.25, 0.25);
-            int ambientDarkness = (int)((1.0 - rainGradient * thunderGradient * skyAngleMath) * 11.0);
-
             // Manually calculate light this way because it accounts for mods that modify the player's block-light value.
             float internalLight;
             int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
             float blockLight = (lightmap >> 4) & 0xF;
-            float skyLight = ((lightmap >> 20) & 0xF) - ambientDarkness;
+            float skyLight = ((lightmap >> 20) & 0xF) - client.world.getAmbientDarkness();
             internalLight = Math.max(blockLight, skyLight);
             return internalLight / 15f;
         });
