@@ -145,7 +145,7 @@ public class CaptureRegistry {
         registerBlendShape("water_submerged", client -> client.player.isUnderWater() ? 1f : 0f);
         registerBlendShape("lava_submerged", client -> client.player.isEyeInFluid(FluidTags.LAVA) ? 1f : 0f);
         registerBlendShape("time_of_day", client -> {
-            float time = client.level.getGameTime();
+            float time = client.level.getDefaultClockTime();
             while (time >= 24000f) {
                 time -= 24000f;
             }
