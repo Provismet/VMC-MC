@@ -3,14 +3,12 @@ package com.provismet.vmcmc.config;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-
+import net.minecraft.resources.Identifier;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.provismet.vmcmc.ClientVMC;
 import com.provismet.vmcmc.vmc.PacketSender;
-
-import net.minecraft.util.Identifier;
 
 public class Config {
     private static final String HOST = "host";

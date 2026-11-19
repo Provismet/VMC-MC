@@ -14,22 +14,22 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.Heightmap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * A basic registry that stores the callbacks to generate BlendShapes and Bones.
  */
 @Environment(value=EnvType.CLIENT)
 public class CaptureRegistry {
-    private static final HashMap<String, Function<MinecraftClient, Float>> BLEND_REGISTRY = new HashMap<>();
-    private static final HashMap<String, Function<MinecraftClient, List<Float>>> BONE_REGISTRY = new HashMap<>();
+    private static final HashMap<String, Function<Minecraft, Float>> BLEND_REGISTRY = new HashMap<>();
+    private static final HashMap<String, Function<Minecraft, List<Float>>> BONE_REGISTRY = new HashMap<>();
     private static final HashMap<String, BlendStore> BLENDSTORE_REGISTRY = new HashMap<>();
 
     public static BlendStore getBlendStore (Identifier identifier) {
@@ -52,7 +52,7 @@ public class CaptureRegistry {
      * @param identifier The ID for the BlendShape. Note: This will be converted into a string when being sent over OSC.
      * @param callback A function that uses the client to output a float.
      */
-    public static void registerBlendShape (Identifier identifier, Function<MinecraftClient, Float> callback) {
+    public static void registerBlendShape (Identifier identifier, Function<Minecraft, Float> callback) {
         if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate BlendShape register attempt: {}", Config.getBlendName(identifier));
         else BLEND_REGISTRY.put(Config.getBlendName(identifier), callback);
     }
@@ -62,7 +62,7 @@ public class CaptureRegistry {
      * @param path The name of the callback. This will be converted into an ID under the vmc-mc default namespace.
      * @param callback A function that uses the client to output a float.
      */
-    public static void registerBlendShape (String path, Function<MinecraftClient, Float> callback) {
+    public static void registerBlendShape (String path, Function<Minecraft, Float> callback) {
         registerBlendShape(ClientVMC.identifier(path), callback);
     }
 
@@ -90,7 +90,7 @@ public class CaptureRegistry {
      * @param identifier The ID for the Bone. Note: This will be converted into a string when being sent over OSC.
      * @param callback A function that uses the client to output a list of floats.
      */
-    public static void registerBone (Identifier identifier, Function<MinecraftClient, List<Float>> callback) {
+    public static void registerBone (Identifier identifier, Function<Minecraft, List<Float>> callback) {
         if (containsKey(identifier)) ClientVMC.LOGGER.error("Duplicate Bone register attempt: {}", identifier.toString());
         else BONE_REGISTRY.put(identifier.toString(), callback);
     }
@@ -105,7 +105,7 @@ public class CaptureRegistry {
      * @param path The name of the callback. This will be converted into an ID under the vmc-mc default namespace.
      * @param callback A function that uses the client to output a list of floats.
      */
-    public static void registerBone (String path, Function<MinecraftClient, List<Float>> callback) {
+    public static void registerBone (String path, Function<Minecraft, List<Float>> callback) {
         registerBone(ClientVMC.identifier(path), callback);
     }
 
@@ -116,14 +116,14 @@ public class CaptureRegistry {
     public static void registerStandardEvents () {
         // Your block light (light gained from torches, etc).
         registerBlendShape("block_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
+			int lightmap = client.getEntityRenderDispatcher().getPackedLightCoords(client.player, client.getDeltaTracker().getGameTimeDeltaPartialTick(true));
             float blockLight = (lightmap >> 4) & 0xF;
 			return blockLight / 15f;
 		});
 
         // This refers to the strength of your sky exposure. It's the same value as from the F3 menu and is NOT the same as actual brightness (but DOES impact it).
         registerBlendShape("sky_light", client -> {
-			int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
+			int lightmap = client.getEntityRenderDispatcher().getPackedLightCoords(client.player, client.getDeltaTracker().getGameTimeDeltaPartialTick(true));
             float skyLight = (lightmap >> 20) & 0xF;
 			return skyLight / 15f;
 		});
@@ -132,9 +132,9 @@ public class CaptureRegistry {
         registerBlendShape("internal_light", client -> {
             // Manually calculate light this way because it accounts for mods that modify the player's block-light value.
             float internalLight;
-            int lightmap = client.getEntityRenderDispatcher().getLight(client.player, client.getRenderTickCounter().getTickProgress(true));
+            int lightmap = client.getEntityRenderDispatcher().getPackedLightCoords(client.player, client.getDeltaTracker().getGameTimeDeltaPartialTick(true));
             float blockLight = (lightmap >> 4) & 0xF;
-            float skyLight = ((lightmap >> 20) & 0xF) - client.world.getAmbientDarkness();
+            float skyLight = ((lightmap >> 20) & 0xF) - client.level.getSkyDarken();
             internalLight = Math.max(blockLight, skyLight);
             return internalLight / 15f;
         });
@@ -142,29 +142,29 @@ public class CaptureRegistry {
         registerBlendShape("relative_health", client -> client.player.getHealth() / client.player.getMaxHealth());
         registerBlendShape("water_height", client -> (float)client.player.getFluidHeight(FluidTags.WATER));
         registerBlendShape("lava_height", client -> (float)client.player.getFluidHeight(FluidTags.LAVA));
-        registerBlendShape("water_submerged", client -> client.player.isSubmergedInWater() ? 1f : 0f);
-        registerBlendShape("lava_submerged", client -> client.player.isSubmergedIn(FluidTags.LAVA) ? 1f : 0f);
+        registerBlendShape("water_submerged", client -> client.player.isUnderWater() ? 1f : 0f);
+        registerBlendShape("lava_submerged", client -> client.player.isEyeInFluid(FluidTags.LAVA) ? 1f : 0f);
         registerBlendShape("time_of_day", client -> {
-            float time = client.world.getTimeOfDay();
+            float time = client.level.getGameTime();
             while (time >= 24000f) {
                 time -= 24000f;
             }
             return time / 24000f;
         });
         registerBlendShape("rain_amount", client -> {
-            if (client.world.isThundering()) return 1f;
-            else if (client.world.isRaining()) return 0.5f;
+            if (client.level.isThundering()) return 1f;
+            else if (client.level.isRaining()) return 0.5f;
             else return 0f;
         });
         registerBlendShape("on_fire", client -> client.player.isOnFire() ? 1f : 0f);
         registerBlendShape("experience", client -> (float)client.player.experienceLevel + client.player.experienceProgress);
-        registerBlendShape("is_wet", client -> client.player.isTouchingWaterOrRain() ? 1f : 0f);
-        registerBlendShape("sneaking", client -> client.player.isSneaking() ? 1f : 0f);
-        registerBlendShape("crawling", client -> client.player.isCrawling() ? 1f : 0f);
-        registerBlendShape("climbing", client -> client.player.isClimbing() ? 1f : 0f);
+        registerBlendShape("is_wet", client -> client.player.isInWaterOrRain() ? 1f : 0f);
+        registerBlendShape("sneaking", client -> client.player.isShiftKeyDown() ? 1f : 0f);
+        registerBlendShape("crawling", client -> client.player.isVisuallyCrawling() ? 1f : 0f);
+        registerBlendShape("climbing", client -> client.player.onClimbable() ? 1f : 0f);
         registerBlendShape("blocking", client -> client.player.isBlocking() ? 1f : 0f);
-        registerBlendShape("glowing", client -> client.player.isGlowing() ? 1f : 0f);
-        registerBlendShape("frozen", client -> client.player.isFrozen() ? 1f : 0f);
+        registerBlendShape("glowing", client -> client.player.isCurrentlyGlowing() ? 1f : 0f);
+        registerBlendShape("frozen", client -> client.player.isFullyFrozen() ? 1f : 0f);
         registerBlendShape("swimming", client -> client.player.isSwimming() ? 1f : 0f);
         registerBlendShape("sprinting", client -> client.player.isSprinting() ? 1f : 0f);
         registerBlendShape("riding_living", client -> client.player.getVehicle() instanceof LivingEntity ? 1f : 0f);
@@ -172,19 +172,19 @@ public class CaptureRegistry {
             if (client.player.getVehicle() == null) return 0f;
             return client.player.getVehicle() instanceof LivingEntity ? 0f : 1f;
         });
-        registerBlendShape("elytra_flying", client -> client.player.isGliding() ? 1f : 0f);
+        registerBlendShape("elytra_flying", client -> client.player.isFallFlying() ? 1f : 0f);
         registerBlendShape("sleeping", client -> client.player.isSleeping() ? 1f : 0f);
         registerBlendShape("alive", client -> client.player.isAlive() ? 1f : 0f);
-        registerBlendShape("relative_food_level", client -> (float)client.player.getHungerManager().getFoodLevel() / 20f);
+        registerBlendShape("relative_food_level", client -> (float)client.player.getFoodData().getFoodLevel() / 20f);
         registerBlendShape("relative_air_level", client -> {
-            float airLevel = client.player.getAir() > 0 ? client.player.getAir() : 0f;
-            return airLevel / (float)client.player.getMaxAir();
+            float airLevel = client.player.getAirSupply() > 0 ? client.player.getAirSupply() : 0f;
+            return airLevel / (float)client.player.getMaxAirSupply();
         });
         registerBlendShape("hotbar", client -> {
             float slot = client.player.getInventory().getSelectedSlot();
             return (slot + 0.1f) / 10f;
         });
-        registerBlendShape("exposed_to_sky", client -> client.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, client.player.getBlockPos()).getY() > client.player.getEyeY() ? 0f : 1f);
+        registerBlendShape("exposed_to_sky", client -> client.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, client.player.blockPosition()).getY() > client.player.getEyeY() ? 0f : 1f);
 
         /* HOW DO BONES?
         registerBone("head", client -> {
@@ -207,18 +207,18 @@ public class CaptureRegistry {
 
         registerBlendStore("attack_player", new BlendStore(0f, 1f, 0.05f, 50));
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (!player.isSpectator() && entity instanceof PlayerEntity) {
+            if (!player.isSpectator() && entity instanceof Player) {
                 getBlendStore(ClientVMC.identifier("attack_player")).activate();
             }
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		});
 
         registerBlendStore("attack_hostile", new BlendStore(0f, 1f, 0.05f, 50));
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (!player.isSpectator() && entity instanceof HostileEntity) {
+            if (!player.isSpectator() && entity instanceof Monster) {
                 getBlendStore(ClientVMC.identifier("attack_hostile")).activate();
             }
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		});
 
         registerBlendStore("attack_living", new BlendStore(0f, 1f, 0.05f, 50));
@@ -226,7 +226,7 @@ public class CaptureRegistry {
             if (!player.isSpectator() && entity instanceof LivingEntity) {
                 getBlendStore(ClientVMC.identifier("attack_living")).activate();
             }
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		});
 
         registerBlendStore("damage_taken", new BlendStore(0f, 1f, 0.05f, 50));
@@ -239,8 +239,8 @@ public class CaptureRegistry {
      * Executes all registered callbacks and sends them through the {@link PacketSender} port.
      * @param client The Minecraft client.
      */
-    public static void iterate (MinecraftClient client) {
-        if (client.player == null || client.world == null || !PacketSender.isValid()) return;
+    public static void iterate (Minecraft client) {
+        if (client.player == null || client.level == null || !PacketSender.isValid()) return;
 
         List<OSCPacket> messages = new ArrayList<>(BLEND_REGISTRY.size() + BONE_REGISTRY.size());
 
